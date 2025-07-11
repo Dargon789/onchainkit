@@ -151,4 +151,14 @@ export async function main() {
 
 main().catch((error) => {
   console.error('Unhandled error:', error);
-});
+}
+async function main() {
+  try {
+    // Existing publish logic
+  } catch (e) {
+    console.error('Publish failed:', e);
+    process.exit(1);
+  }
+}
+main();
+             
