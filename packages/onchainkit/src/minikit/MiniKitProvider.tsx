@@ -1,10 +1,9 @@
 'use client';
-
 import { DefaultOnchainKitProviders } from '@/DefaultOnchainKitProviders';
 import { OnchainKitProvider } from '@/OnchainKitProvider';
 import type { OnchainKitProviderReact } from '@/types';
 import sdk, { type Context } from '@farcaster/frame-sdk';
-import { farcasterFrame } from '@farcaster/frame-wagmi-connector';
+import { farcasterFrame } from '@farcaster/miniapp-wagmi-connector';
 import {
   createContext,
   useCallback,
@@ -33,10 +32,10 @@ export function MiniKitProvider({
   autoConnect = true,
   ...onchainKitProps
 }: MiniKitProviderReact & OnchainKitProviderReact) {
-  const [context, setContext] = useState<Context.FrameContext | null>(null);
+  const [context, setContext] = useState<Context.MiniAppContext | null>(null);
 
   useEffect(() => {
-    sdk.on('frameAdded', ({ notificationDetails }) => {
+    sdk.on('miniAppAdded', ({ notificationDetails }) => {
       if (notificationDetails) {
         updateClientContext({
           details: notificationDetails,
@@ -45,11 +44,11 @@ export function MiniKitProvider({
       }
     });
 
-    sdk.on('frameAddRejected', ({ reason }) => {
-      console.error('Frame add rejected', reason);
+    sdk.on('miniAppAddRejected', ({ reason }) => {
+      console.error('Mini app add rejected', reason);
     });
 
-    sdk.on('frameRemoved', () => {
+    sdk.on('miniAppRemoved', () => {
       updateClientContext({
         details: undefined,
         frameAdded: false,
@@ -70,7 +69,7 @@ export function MiniKitProvider({
 
     async function fetchContext() {
       try {
-        // if not running in a frame, context resolves as undefined
+        // if not running in a mini app, context resolves as undefined
         const context = await sdk.context;
         setContext(context);
       } catch (error) {

@@ -1,6 +1,6 @@
 {
   "name": "@coinbase/onchainkit",
-  "version": "0.38.15",
+  "version": "0.38.19",
   "type": "module",
   "repository": "https://github.com/coinbase/onchainkit.git",
   "license": "MIT",
@@ -31,8 +31,8 @@
     "react-dom": "^18 || ^19"
   },
   "dependencies": {
-    "@farcaster/frame-sdk": "^0.0.60",
-    "@farcaster/frame-wagmi-connector": "^0.0.53",
+    "@farcaster/frame-sdk": "^0.1.8",
+    "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@tanstack/react-query": "^5",
     "@wagmi/core": "^2.16.7",
     "clsx": "^2.1.1",
@@ -41,7 +41,7 @@
     "qrcode": "^1.5.4",
     "tailwind-merge": "^2.3.0",
     "viem": "^2.27.2",
-    "wagmi": "^2.14.11"
+    "wagmi": "^2.16.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.14",
