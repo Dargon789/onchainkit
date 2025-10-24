@@ -6,9 +6,19 @@ import type { MiniKitContextType } from '../types';
 import { useMiniKit } from './useMiniKit';
 
 const mockContext = {
+  enabled: true,
   context: null,
   notificationProxyUrl: '/api/notify',
   updateClientContext: vi.fn(),
+  __isMiniKit: true,
+} as MiniKitContextType;
+
+const mockDisabledContext = {
+  enabled: false,
+  context: null,
+  notificationProxyUrl: '/api/notify',
+  updateClientContext: vi.fn(),
+  __isMiniKit: false,
 } as MiniKitContextType;
 
 vi.mock('@/DefaultOnchainKitProviders', () => ({
@@ -21,7 +31,7 @@ vi.mock('@/OnchainKitProvider', () => ({
 }));
 
 vi.mock('@farcaster/miniapp-wagmi-connector', () => ({
-  farcasterFrame: vi.fn(),
+  farcasterMiniApp: vi.fn(),
 }));
 
 describe('useMiniKit', () => {
@@ -29,10 +39,16 @@ describe('useMiniKit', () => {
     vi.clearAllMocks();
   });
 
-  it('should throw error when used outside MiniKitProvider', () => {
+  it('should throw error when MiniKit is not enabled', () => {
     expect(() => {
-      renderHook(() => useMiniKit());
-    }).toThrow('useMiniKit must be used within a MiniKitProvider');
+      renderHook(() => useMiniKit(), {
+        wrapper: ({ children }) => (
+          <MiniKitContext.Provider value={mockDisabledContext}>
+            {children}
+          </MiniKitContext.Provider>
+        ),
+      });
+    }).toThrow('MiniKit is not enabled. Please check your OnchainKitProvider.');
   });
 
   it('allows users to pass through ready options', async () => {
@@ -80,5 +96,76 @@ describe('useMiniKit', () => {
     });
 
     expect(result.current.isFrameReady).toBe(true);
+  });
+
+  // Tests for new properties
+  it('allows users to pass through ready options with setMiniAppReady', async () => {
+    const { result } = renderHook(() => useMiniKit(), {
+      wrapper: ({ children }) => (
+        <MiniKitContext.Provider value={mockContext}>
+          {children}
+        </MiniKitContext.Provider>
+      ),
+    });
+
+    await act(async () => {
+      result.current.setMiniAppReady({ disableNativeGestures: true });
+    });
+
+    expect(result.current.isMiniAppReady).toBe(true);
+  });
+
+  it('should return the correct values for new properties', () => {
+    const { result } = renderHook(() => useMiniKit(), {
+      wrapper: ({ children }) => (
+        <MiniKitContext.Provider value={mockContext}>
+          {children}
+        </MiniKitContext.Provider>
+      ),
+    });
+    expect(result.current.isMiniAppReady).toBe(false);
+    expect(result.current.context).toEqual(mockContext.context);
+    expect(result.current.notificationProxyUrl).toBe(
+      mockContext.notificationProxyUrl,
+    );
+  });
+
+  it('should set mini app ready', async () => {
+    const { result } = renderHook(() => useMiniKit(), {
+      wrapper: ({ children }) => (
+        <MiniKitContext.Provider value={mockContext}>
+          {children}
+        </MiniKitContext.Provider>
+      ),
+    });
+
+    await act(async () => {
+      result.current.setMiniAppReady();
+    });
+
+    expect(result.current.isMiniAppReady).toBe(true);
+  });
+
+  it('should ensure both deprecated and new properties are synchronized', async () => {
+    const { result } = renderHook(() => useMiniKit(), {
+      wrapper: ({ children }) => (
+        <MiniKitContext.Provider value={mockContext}>
+          {children}
+        </MiniKitContext.Provider>
+      ),
+    });
+
+    // Test that both properties start false
+    expect(result.current.isFrameReady).toBe(false);
+    expect(result.current.isMiniAppReady).toBe(false);
+
+    // Set ready using deprecated method
+    await act(async () => {
+      result.current.setFrameReady();
+    });
+
+    // Both should be true since they reference the same state
+    expect(result.current.isFrameReady).toBe(true);
+    expect(result.current.isMiniAppReady).toBe(true);
   });
 });

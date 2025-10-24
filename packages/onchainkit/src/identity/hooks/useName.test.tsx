@@ -1,4 +1,3 @@
-import { publicClient } from '@/core/network/client';
 /**
  * @vitest-environment jsdom
  */
@@ -7,17 +6,11 @@ import { base, optimism } from 'viem/chains';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getNewReactQueryTestProvider } from './getNewReactQueryTestProvider';
 import { useName } from './useName';
-import type { GetName } from '@/identity/types';
+import type { GetNameParams } from '@/identity/types';
 
 const mockGetName = vi.fn();
 vi.mock('@/identity/utils/getName', () => ({
-  getName: (...args: [GetName]) => mockGetName(...args),
-}));
-
-vi.mock('@/core/network/client');
-vi.mock('@/core/network/getChainPublicClient', () => ({
-  ...vi.importActual('@/core/network/getChainPublicClient'),
-  getChainPublicClient: vi.fn(() => publicClient),
+  getName: (...args: [GetNameParams]) => mockGetName(...args),
 }));
 
 const mockGetAddress = vi.fn();
@@ -259,46 +252,5 @@ describe('useName', () => {
     expect(mockGetName).not.toHaveBeenCalled();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.fetchStatus).toBe('idle');
-  });
-
-  it('correctly maps cacheTime to gcTime for backwards compatibility', async () => {
-    const mockCacheTime = 60000;
-    const testEnsName = 'test.ens';
-    mockGetName.mockResolvedValue(testEnsName);
-
-    renderHook(
-      () => useName({ address: testAddress }, { cacheTime: mockCacheTime }),
-      {
-        wrapper: getNewReactQueryTestProvider(),
-      },
-    );
-
-    expect(mockUseQuery).toHaveBeenCalled();
-    const optionsWithCacheTime = mockUseQuery.mock.calls[0][0];
-    expect(optionsWithCacheTime).toHaveProperty('gcTime', mockCacheTime);
-
-    const mockGcTime = 120000;
-
-    mockUseQuery.mockClear();
-
-    renderHook(
-      () =>
-        useName(
-          {
-            address: testAddress,
-          },
-          {
-            cacheTime: mockCacheTime,
-            gcTime: mockGcTime,
-          },
-        ),
-      {
-        wrapper: getNewReactQueryTestProvider(),
-      },
-    );
-
-    expect(mockUseQuery).toHaveBeenCalled();
-    const optionsWithBoth = mockUseQuery.mock.calls[0][0];
-    expect(optionsWithBoth).toHaveProperty('gcTime', mockGcTime);
   });
 });

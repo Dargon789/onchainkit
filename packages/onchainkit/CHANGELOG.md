@@ -1,31 +1,48 @@
 # Changelog
 
-## 0.38.19
+## 1.1.1
 
 ### Patch Changes
 
-- **feat:** Add useSwapToken mini app util - Thanks [@dgca](https://github.com/dgca)! [#2444](https://github.com/coinbase/onchainkit/pull/2444)
+- fix: Allow additional properties in withValidManifest - Thanks [@dgca](https://github.com/dgca)! [#2515](https://github.com/coinbase/onchainkit/pull/2515)
 
-- **feat:** Add `useSendToken` MiniKit hook - Thanks [@dgca](https://github.com/dgca)! [#2445](https://github.com/coinbase/onchainkit/pull/2445)
+## 1.1.0
 
-## 0.38.18
+### Minor Changes
 
-### Patch Changes
-
-- **feat:** Add Base Account connector support
-- **chore:**: Update @farcaster/frame-sdk dependency
-
-## 0.38.17
+- feat: Add option to useOpenUrl to handle non-mini-app behavior in a custom way - Thanks [@dgca](https://github.com/dgca)! [#2500](https://github.com/coinbase/onchainkit/pull/2500)
 
 ### Patch Changes
 
-- **feat:** Accept farcasterMiniApp connector for autoconnect functionality
+- fix: Deprecate isFrameReady and setFrameReady for isMiniAppReady and setMiniAppReady - Thanks [@dgca](https://github.com/dgca)! [#2510](https://github.com/coinbase/onchainkit/pull/2510)
 
-## 0.38.16
+- fix: Update GetOnrampUrl types to account for new API interface - Thanks [@dgca](https://github.com/dgca)! [#2511](https://github.com/coinbase/onchainkit/pull/2511)
+
+## 1.0.3
+
+## 1.0.2
 
 ### Patch Changes
 
-- **feat:** Update useIsInMiniApp to check for sdk.context
+- **chore:** Package version bump
+
+## 1.0.1
+
+- Skipped version to sync versions with create-onchain
+
+## 1.0.0
+
+### Major Changes
+
+- Bumps major dependencies
+  - Tailwind v4
+  - React 19
+  - Next 15
+  - Node 22
+- Adds render props for better customization
+- Combines MiniKit and OnchainKit
+  - MiniKit support is not controlled by a prop on OnchainKit
+- Removes deprecated components
 
 ## 0.38.15
 
