@@ -34,12 +34,19 @@ export async function sendFrameNotification({
     return { state: "no_token" };
   }
 
-  // Define a strict allowlist of full hostnames
+  // Define a strict allowlist of hostnames and paths
   const allowedHostnames = ["api.coinbase.com"];
+  const allowedPaths = ["/api/notification"]; // change/add allowed paths as needed
   const url = new URL(notificationDetails.url);
-  
-  // Validate the URL scheme and hostname
-  if (url.protocol !== "https:" || !allowedHostnames.includes(url.hostname)) {
+
+  // Validate the URL scheme, hostname, port, and pathname
+  if (
+    url.protocol !== "https:" ||
+    !allowedHostnames.includes(url.hostname) ||
+    (url.port && url.port !== "443") ||
+    !allowedPaths.includes(url.pathname) ||
+    url.search || url.hash // optionally disallow query/fragment, remove this if queries are needed
+  ) {
     return { state: "error", error: "Invalid or unsafe notification URL" };
   }
 
