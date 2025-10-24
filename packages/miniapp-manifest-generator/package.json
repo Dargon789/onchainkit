@@ -15,7 +15,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@coinbase/onchainkit": "latest",
+    "@coinbase/onchainkit": "1.0.0",
     "buffer": "^6.0.3",
     "react": "^18",
     "react-dom": "^18",
