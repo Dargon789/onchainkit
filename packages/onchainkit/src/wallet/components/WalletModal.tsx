@@ -3,18 +3,23 @@
 import { Dialog } from '@/internal/components/Dialog';
 import { CloseSvg } from '@/internal/svg/closeSvg';
 import { coinbaseWalletSvg } from '@/internal/svg/coinbaseWalletSvg';
-import { defaultAvatarSVG } from '@/internal/svg/defaultAvatarSVG';
 import { frameWalletSvg } from '@/internal/svg/frameWalletSvg';
 import { metamaskSvg } from '@/internal/svg/metamaskSvg';
 import { phantomSvg } from '@/internal/svg/phantomSvg';
 import { rabbySvg } from '@/internal/svg/rabbySvg';
 import { trustWalletSvg } from '@/internal/svg/trustWalletSvg';
-import { background, border, cn, color, pressable, text } from '@/styles/theme';
+import { border, cn, pressable, text } from '@/styles/theme';
 import { useOnchainKit } from '@/useOnchainKit';
 import { useCallback } from 'react';
 import { useConnect } from 'wagmi';
-import { coinbaseWallet, injected, metaMask } from 'wagmi/connectors';
+import {
+  baseAccount,
+  coinbaseWallet,
+  injected,
+  metaMask,
+} from 'wagmi/connectors';
 import { checkWalletAndRedirect } from '../utils/checkWalletAndRedirect';
+import { BaseAccountSvg } from '@/internal/svg/baseAccountSvg';
 
 type WalletProviderOption = {
   id: string;
@@ -50,7 +55,27 @@ export function WalletModal({
     trust: false,
     frame: false,
   };
-  const isSignUpEnabled = config?.wallet?.signUpEnabled ?? true;
+
+  const handleBaseAccountConnection = useCallback(() => {
+    try {
+      connect({
+        connector: baseAccount({
+          appName,
+          appLogoUrl: appLogo,
+        }),
+      });
+      onClose();
+    } catch (error) {
+      console.error('Base Account connection error:', error);
+      if (onError) {
+        onError(
+          error instanceof Error
+            ? error
+            : new Error('Failed to connect wallet'),
+        );
+      }
+    }
+  }, [appName, appLogo, connect, onClose, onError]);
 
   const handleCoinbaseWalletConnection = useCallback(() => {
     try {
@@ -229,13 +254,19 @@ export function WalletModal({
   ].filter((wallet) => wallet.enabled);
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} aria-label="Connect Wallet">
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      aria-label="Connect Wallet"
+      title="Connect Wallet"
+      description="Connect wallet"
+    >
       <div
         data-testid="ockModalOverlay"
         className={cn(
           border.lineDefault,
-          border.radius,
-          background.default,
+          'rounded-ock-default',
+          'bg-ock-background',
           'w-[22rem] p-6 pb-4',
           'relative flex flex-col items-center gap-4',
           className,
@@ -246,8 +277,8 @@ export function WalletModal({
           onClick={onClose}
           className={cn(
             pressable.default,
-            border.radius,
-            border.default,
+            'rounded-ock-default',
+            'border-ock-background',
             'absolute top-4 right-4',
             'flex items-center justify-center p-1',
             'transition-colors duration-200',
@@ -262,7 +293,12 @@ export function WalletModal({
         {(appLogo || appName) && (
           <div className="flex w-full flex-col items-center gap-2 py-3">
             {appLogo && (
-              <div className={cn(border.radius, 'h-14 w-14 overflow-hidden')}>
+              <div
+                className={cn(
+                  'rounded-ock-default',
+                  'h-14 w-14 overflow-hidden',
+                )}
+              >
                 <img
                   src={appLogo}
                   alt={`${appName || 'App'} icon`}
@@ -272,7 +308,11 @@ export function WalletModal({
             )}
             {appName && (
               <h2
-                className={cn(text.headline, color.foreground, 'text-center')}
+                className={cn(
+                  text.headline,
+                  'text-ock-foreground',
+                  'text-center',
+                )}
               >
                 {appName}
               </h2>
@@ -281,43 +321,40 @@ export function WalletModal({
         )}
 
         <div className="flex w-full flex-col gap-3">
-          {isSignUpEnabled && (
-            <button
-              type="button"
-              onClick={handleCoinbaseWalletConnection}
-              className={cn(
-                border.radius,
-                text.body,
-                pressable.alternate,
-                color.foreground,
-                'flex items-center justify-between px-4 py-3 text-left',
-              )}
-            >
-              Sign up
-              <div className="h-4 w-4">{defaultAvatarSVG}</div>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleBaseAccountConnection}
+            className={cn(
+              'rounded-ock-default',
+              'bg-ock-background',
+              text.body,
+              pressable.alternate,
+              'text-ock-foreground',
+              'flex items-center justify-between px-4 py-3 text-left',
+            )}
+          >
+            Sign in with Base
+            <div className="-mr-0.5 flex h-4 w-4 items-center justify-center">
+              <BaseAccountSvg />
+            </div>
+          </button>
 
           <div className="relative">
-            {isSignUpEnabled && (
-              <div className="absolute inset-0 flex items-center">
-                <div
-                  className={cn(border.lineDefault, 'w-full border-[0.5px]')}
-                />
-              </div>
-            )}
+            <div className="absolute inset-0 flex items-center">
+              <div
+                className={cn(border.lineDefault, 'w-full border-[0.5px]')}
+              />
+            </div>
             <div className="relative flex justify-center">
               <span
                 className={cn(
-                  background.default,
-                  color.foregroundMuted,
+                  'bg-ock-background',
+                  'text-ock-foreground-muted',
                   text.legal,
                   'px-2',
                 )}
               >
-                {isSignUpEnabled
-                  ? 'or continue with an existing wallet'
-                  : 'Connect your wallet'}
+                or use another wallet
               </span>
             </div>
           </div>
@@ -328,11 +365,11 @@ export function WalletModal({
               type="button"
               onClick={wallet.connector}
               className={cn(
-                border.radius,
-                background.default,
+                'rounded-ock-default',
+                'bg-ock-background',
                 text.body,
                 pressable.alternate,
-                color.foreground,
+                'text-ock-foreground',
                 'flex items-center justify-between px-4 py-3 text-left',
               )}
             >
@@ -346,7 +383,7 @@ export function WalletModal({
 
         <div
           className={cn(
-            color.foregroundMuted,
+            'text-ock-foreground-muted',
             text.legal,
             'flex flex-col items-center justify-center gap-1 px-4',
             'mt-4 text-center',
@@ -359,7 +396,7 @@ export function WalletModal({
             {termsOfServiceUrl && (
               <a
                 href={termsOfServiceUrl}
-                className={cn(color.primary, 'hover:underline')}
+                className={cn('text-ock-primary', 'hover:underline')}
                 target="_blank"
                 rel="noopener noreferrer"
                 tabIndex={0}
@@ -371,7 +408,7 @@ export function WalletModal({
             {privacyPolicyUrl && (
               <a
                 href={privacyPolicyUrl}
-                className={cn(color.primary, 'hover:underline')}
+                className={cn('text-ock-primary', 'hover:underline')}
                 target="_blank"
                 rel="noopener noreferrer"
                 tabIndex={0}
