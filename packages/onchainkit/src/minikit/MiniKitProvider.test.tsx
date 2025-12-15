@@ -1,14 +1,15 @@
-import sdk, { type Context } from '@farcaster/frame-sdk';
+import sdk, { type Context } from '@farcaster/miniapp-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { act, useContext } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { http, WagmiProvider, createConfig } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { MiniKitContext, MiniKitProvider } from './MiniKitProvider';
+import { MiniKitContext } from './MiniKitProvider';
 import type { MiniKitContextType } from './types';
+import { OnchainKitProvider } from '../OnchainKitProvider';
 
-vi.mock('@farcaster/frame-sdk', () => {
+vi.mock('@farcaster/miniapp-sdk', () => {
   let listeners: Record<string, (data: object) => void> = {};
 
   return {
@@ -25,12 +26,18 @@ vi.mock('@farcaster/frame-sdk', () => {
         listeners = {};
       }),
       context: vi.fn(),
+      isInMiniApp: vi.fn(),
     },
   };
 });
 
-vi.mock('@farcaster/frame-wagmi-connector', () => ({
-  farcasterFrame: vi.fn(),
+vi.mock('@farcaster/miniapp-wagmi-connector', () => ({
+  farcasterMiniApp: vi.fn(),
+}));
+
+vi.mock('wagmi/connectors', () => ({
+  coinbaseWallet: vi.fn(),
+  baseAccount: vi.fn(),
 }));
 
 const mockConfig = {
@@ -49,7 +56,8 @@ describe('MiniKitProvider', () => {
         added: false,
         safeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 },
       },
-    }) as unknown as Promise<Context.FrameContext>;
+    }) as unknown as Promise<Context.MiniAppContext>;
+    vi.mocked(sdk.isInMiniApp).mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -67,7 +75,7 @@ describe('MiniKitProvider', () => {
     render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider
+          <OnchainKitProvider
             chain={mockConfig.chains[0]}
             config={{
               appearance: {
@@ -75,9 +83,12 @@ describe('MiniKitProvider', () => {
                 logo: 'https://example.com/icon.png',
               },
             }}
+            miniKit={{
+              enabled: true,
+            }}
           >
             <TestComponent />
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
@@ -111,9 +122,14 @@ describe('MiniKitProvider', () => {
       render(
         <WagmiProvider config={createConfig(mockConfig)}>
           <QueryClientProvider client={queryClient}>
-            <MiniKitProvider chain={mockConfig.chains[0]}>
+            <OnchainKitProvider
+              chain={mockConfig.chains[0]}
+              miniKit={{
+                enabled: true,
+              }}
+            >
               <TestComponent />
-            </MiniKitProvider>
+            </OnchainKitProvider>
           </QueryClientProvider>
         </WagmiProvider>,
       );
@@ -122,42 +138,26 @@ describe('MiniKitProvider', () => {
     expect(contextValue?.context).toBeNull();
   });
 
-  it('should render children with safe area insets', async () => {
-    const { container } = render(
-      <WagmiProvider config={createConfig(mockConfig)}>
-        <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
-            <div>Test Child</div>
-          </MiniKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>,
-    );
-
-    await act(() => Promise.resolve());
-
-    expect(container.querySelector('div')).toHaveStyle({
-      paddingTop: '0px',
-      paddingBottom: '0px',
-      paddingLeft: '0px',
-      paddingRight: '0px',
-    });
-  });
-
   it('should set up frame event listeners', async () => {
     render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
+          <OnchainKitProvider
+            chain={mockConfig.chains[0]}
+            miniKit={{
+              enabled: true,
+            }}
+          >
             <div>Test Child</div>
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
 
     await act(() => Promise.resolve());
 
-    expect(sdk.on).toHaveBeenCalledWith('frameAdded', expect.any(Function));
-    expect(sdk.on).toHaveBeenCalledWith('frameRemoved', expect.any(Function));
+    expect(sdk.on).toHaveBeenCalledWith('miniAppAdded', expect.any(Function));
+    expect(sdk.on).toHaveBeenCalledWith('miniAppRemoved', expect.any(Function));
     expect(sdk.on).toHaveBeenCalledWith(
       'notificationsEnabled',
       expect.any(Function),
@@ -172,9 +172,14 @@ describe('MiniKitProvider', () => {
     const { unmount } = render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
+          <OnchainKitProvider
+            chain={mockConfig.chains[0]}
+            miniKit={{
+              enabled: true,
+            }}
+          >
             <div>Test Child</div>
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
@@ -197,9 +202,14 @@ describe('MiniKitProvider', () => {
     render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
+          <OnchainKitProvider
+            chain={mockConfig.chains[0]}
+            miniKit={{
+              enabled: true,
+            }}
+          >
             <TestComponent />
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
@@ -212,7 +222,7 @@ describe('MiniKitProvider', () => {
     };
 
     act(() => {
-      sdk.emit('frameAdded', {
+      sdk.emit('miniAppAdded', {
         notificationDetails,
       });
     });
@@ -223,14 +233,14 @@ describe('MiniKitProvider', () => {
     expect(contextValue?.context?.client.added).toBe(true);
 
     act(() => {
-      sdk.emit('frameRemoved');
+      sdk.emit('miniAppRemoved');
     });
 
     expect(contextValue?.context?.client.notificationDetails).toBeUndefined();
     expect(contextValue?.context?.client.added).toBe(false);
   });
 
-  it('should log an error when frameAddRejected is emitted', async () => {
+  it('should log an error when miniAppAddRejected is emitted', async () => {
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(vi.fn());
@@ -238,21 +248,26 @@ describe('MiniKitProvider', () => {
     render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
+          <OnchainKitProvider
+            chain={mockConfig.chains[0]}
+            miniKit={{
+              enabled: true,
+            }}
+          >
             <div>Test Child</div>
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
 
     await act(() => Promise.resolve());
 
-    sdk.emit('frameAddRejected', {
+    sdk.emit('miniAppAddRejected', {
       reason: 'invalid_domain_manifest',
     });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Frame add rejected',
+      'MiniApp add rejected',
       'invalid_domain_manifest',
     );
   });
@@ -269,9 +284,14 @@ describe('MiniKitProvider', () => {
     render(
       <WagmiProvider config={createConfig(mockConfig)}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider chain={mockConfig.chains[0]}>
+          <OnchainKitProvider
+            chain={mockConfig.chains[0]}
+            miniKit={{
+              enabled: true,
+            }}
+          >
             <TestComponent />
-          </MiniKitProvider>
+          </OnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>,
     );
@@ -315,9 +335,14 @@ describe('MiniKitProvider', () => {
       render(
         <WagmiProvider config={createConfig(mockConfig)}>
           <QueryClientProvider client={queryClient}>
-            <MiniKitProvider chain={mockConfig.chains[0]}>
+            <OnchainKitProvider
+              chain={mockConfig.chains[0]}
+              miniKit={{
+                enabled: true,
+              }}
+            >
               <TestComponent />
-            </MiniKitProvider>
+            </OnchainKitProvider>
           </QueryClientProvider>
         </WagmiProvider>,
       );
@@ -330,5 +355,50 @@ describe('MiniKitProvider', () => {
     expect(contextValue?.context).toBeNull();
 
     consoleSpy.mockRestore();
+  });
+
+  it('should not initialize MiniKit when not enabled', async () => {
+    let contextValue: MiniKitContextType | undefined;
+
+    function TestComponent() {
+      contextValue = useContext(MiniKitContext);
+      return null;
+    }
+
+    render(
+      <WagmiProvider config={createConfig(mockConfig)}>
+        <QueryClientProvider client={queryClient}>
+          <OnchainKitProvider chain={mockConfig.chains[0]}>
+            <TestComponent />
+          </OnchainKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>,
+    );
+
+    await act(() => Promise.resolve());
+
+    expect(contextValue?.enabled).toBe(false);
+    expect(contextValue?.context).toBeNull();
+    expect(sdk.on).not.toHaveBeenCalled();
+  });
+
+  it('should provide default context values when used without provider', () => {
+    let contextValue: MiniKitContextType | undefined;
+
+    function TestComponent() {
+      contextValue = useContext(MiniKitContext);
+      return null;
+    }
+
+    render(<TestComponent />);
+
+    expect(contextValue?.enabled).toBe(false);
+    expect(contextValue?.context).toBeNull();
+    expect(contextValue?.notificationProxyUrl).toBe('');
+    expect(contextValue?.__isMiniKit).toBe(false);
+    expect(typeof contextValue?.updateClientContext).toBe('function');
+
+    // Test that the default updateClientContext is a no-op
+    expect(() => contextValue?.updateClientContext({})).not.toThrow();
   });
 });

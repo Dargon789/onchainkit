@@ -1,9 +1,11 @@
+import { clientMetaManager } from '../clientMeta/clientMetaManager';
 import {
   CONTEXT_HEADER,
   JSON_HEADERS,
   JSON_RPC_VERSION,
   POST_METHOD,
   RequestContext,
+  RequestContextType,
 } from './constants';
 import { getRPCUrl } from './getRPCUrl';
 
@@ -52,24 +54,35 @@ export function buildRequestBody<T>(
  * @params context - Tracks the context where the request originated
  * @returns The headers for the JSON-RPC request.
  */
-export function buildRequestHeaders(
-  context?: RequestContext,
-): Record<string, string> {
+async function buildRequestHeaders(
+  context?: RequestContextType,
+): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    ...JSON_HEADERS,
+  };
+
+  const clientMeta = await clientMetaManager.getClientMeta().catch(() => null);
+
+  if (clientMeta) {
+    headers['OnchainKit-Client-Fid'] = clientMeta.clientFid?.toString() ?? '';
+    headers['OnchainKit-Mode'] = clientMeta.mode;
+  }
+
   if (context) {
     // if an invalid context is provided, default to 'api'
     if (!Object.values(RequestContext).includes(context)) {
       return {
-        ...JSON_HEADERS,
+        ...headers,
         [CONTEXT_HEADER]: RequestContext.API,
       };
     }
 
     return {
-      ...JSON_HEADERS,
+      ...headers,
       [CONTEXT_HEADER]: context,
     };
   }
-  return JSON_HEADERS;
+  return headers;
 }
 
 /**
@@ -84,14 +97,14 @@ export function buildRequestHeaders(
 export async function sendRequest<T, V>(
   method: string,
   params: T[],
-  _context?: RequestContext,
+  _context?: RequestContextType,
 ): Promise<JSONRPCResult<V>> {
   try {
     const body = buildRequestBody<T>(method, params);
     const url = getRPCUrl();
     const response = await fetch(url, {
       body: JSON.stringify(body),
-      headers: buildRequestHeaders(_context),
+      headers: await buildRequestHeaders(_context),
       method: POST_METHOD,
     });
     const data: JSONRPCResult<V> = await response.json();

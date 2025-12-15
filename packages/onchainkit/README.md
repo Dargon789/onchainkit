@@ -51,7 +51,7 @@
 
 ## 🚀 Quickstart
 
-Run `npm create onchain` to boostrap an example onchain app with all the batteries included.
+Run `npm create onchain` to bootstrap an example onchain app with all the batteries included.
 
 ## ✨ Documentation
 
@@ -116,7 +116,6 @@ pnpm f:play dev:watch
 ```
 
 Then, you can view the playground at [http://localhost:3000](http://localhost:3000).
-
 
 ## 🌁 Team and Community
 

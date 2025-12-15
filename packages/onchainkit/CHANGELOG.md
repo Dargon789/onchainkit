@@ -1,5 +1,71 @@
 # Changelog
 
+## 1.1.2
+
+### Patch Changes
+
+- fix: Rename allowedAddresses field to ownerAddress - Thanks [@dgca](https://github.com/dgca)! [#2530](https://github.com/coinbase/onchainkit/pull/2530)
+
+- chore: Deprecate <Checkout /> component and related functionality - Thanks [@dgca](https://github.com/dgca)! [#2528](https://github.com/coinbase/onchainkit/pull/2528)
+
+## 1.1.1
+
+### Patch Changes
+
+- fix: Allow additional properties in withValidManifest - Thanks [@dgca](https://github.com/dgca)! [#2515](https://github.com/coinbase/onchainkit/pull/2515)
+
+## 1.1.0
+
+### Minor Changes
+
+- feat: Add option to useOpenUrl to handle non-mini-app behavior in a custom way - Thanks [@dgca](https://github.com/dgca)! [#2500](https://github.com/coinbase/onchainkit/pull/2500)
+
+### Patch Changes
+
+- fix: Deprecate isFrameReady and setFrameReady for isMiniAppReady and setMiniAppReady - Thanks [@dgca](https://github.com/dgca)! [#2510](https://github.com/coinbase/onchainkit/pull/2510)
+
+- fix: Update GetOnrampUrl types to account for new API interface - Thanks [@dgca](https://github.com/dgca)! [#2511](https://github.com/coinbase/onchainkit/pull/2511)
+
+## 1.0.3
+
+## 1.0.2
+
+### Patch Changes
+
+- **chore:** Package version bump
+
+## 1.0.1
+
+- Skipped version to sync versions with create-onchain
+
+## 1.0.0
+
+### Major Changes
+
+- Bumps major dependencies
+  - Tailwind v4
+  - React 19
+  - Next 15
+  - Node 22
+- Adds render props for better customization
+- Combines MiniKit and OnchainKit
+  - MiniKit support is not controlled by a prop on OnchainKit
+- Removes deprecated components
+
+## 0.38.15
+
+### Patch Changes
+
+- **chore:** Rename alpha version to canary. By @dgca #2404
+- **chore:** Add client FID and OnchainKit/MiniKit differentiation to analytics. By @dgca #2391
+
+## 0.38.14
+
+### Patch Changes
+
+- **chore**: Update Next.js to version 15. By @dgca #2390
+- **feat**: Update Node to version 20. By @dgca #2390
+
 ## 0.38.13
 
 ### Patch Changes
