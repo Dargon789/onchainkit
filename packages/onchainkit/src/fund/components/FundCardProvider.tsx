@@ -25,6 +25,7 @@ import type {
 type FundCardContextType = {
   asset: string;
   currency: string;
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   selectedPaymentMethod?: PaymentMethod;
   setSelectedPaymentMethod: (paymentMethod: PaymentMethod) => void;
   selectedInputType: AmountInputType;
@@ -72,6 +73,7 @@ export function FundCardProvider({
   onStatus,
   onSuccess,
   presetAmountInputs,
+  sessionToken,
 }: FundCardProviderProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     PaymentMethod | undefined
@@ -198,6 +200,7 @@ export function FundCardProvider({
         lifecycleStatus,
         updateLifecycleStatus,
         presetAmountInputs,
+        sessionToken,
         onError,
       }}
     >

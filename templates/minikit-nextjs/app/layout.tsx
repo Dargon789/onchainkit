@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
+import { SafeArea } from "@coinbase/onchainkit/minikit";
 import { minikitConfig } from "@/minikit.config";
 import { RootProvider } from "./rootProvider";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: minikitConfig.frame.name,
-    description: minikitConfig.frame.description,
+    title: minikitConfig.miniapp.name,
+    description: minikitConfig.miniapp.description,
     other: {
-      "fc:frame": JSON.stringify({
-        version: minikitConfig.frame.version,
-        imageUrl: minikitConfig.frame.heroImageUrl,
+      "fc:miniapp": JSON.stringify({
+        version: minikitConfig.miniapp.version,
+        imageUrl: minikitConfig.miniapp.heroImageUrl,
         button: {
-          title: `Launch ${minikitConfig.frame.name}`,
+          title: `Launch ${minikitConfig.miniapp.name}`,
           action: {
-            name: `Launch ${minikitConfig.frame.name}`,
-            type: "launch_frame",
+            name: `Launch ${minikitConfig.miniapp.name}`,
+            type: "launch_miniapp",
           },
         },
       }),
@@ -40,10 +41,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${sourceCodePro.variable}`}>
-        <RootProvider>{children}</RootProvider>
-      </body>
-    </html>
+    <RootProvider>
+      <html lang="en">
+        <body className={`${inter.variable} ${sourceCodePro.variable}`}>
+          <SafeArea>{children}</SafeArea>
+        </body>
+      </html>
+    </RootProvider>
   );
 }

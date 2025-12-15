@@ -14,6 +14,7 @@ import { FundCardSubmitButton } from './FundCardSubmitButton';
 
 export function FundCard({
   assetSymbol,
+  sessionToken,
   buttonText = 'Buy',
   headerText,
   country = 'US',
@@ -26,6 +27,10 @@ export function FundCard({
   onStatus,
   onSuccess,
 }: FundCardProps) {
+  // Ensure a session token is provided
+  if (!sessionToken) {
+    throw new Error('FundCard requires a sessionToken');
+  }
   return (
     <FundCardProvider
       asset={assetSymbol}
@@ -38,6 +43,7 @@ export function FundCard({
       onStatus={onStatus}
       onSuccess={onSuccess}
       presetAmountInputs={presetAmountInputs}
+      sessionToken={sessionToken}
     >
       <div
         className={cn(

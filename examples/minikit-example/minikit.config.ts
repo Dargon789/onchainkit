@@ -1,9 +1,12 @@
-const ROOT_URL = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
+const ROOT_URL =
+  process.env.NEXT_PUBLIC_URL ||
+  (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
+  "http://localhost:3000";
 
 /**
- * MiniApp configuration object. Must follow the Farcaster MiniApp specification.
+ * MiniApp configuration object. Must follow the mini app manifest specification.
  *
- * @see {@link https://miniapps.farcaster.xyz/docs/guides/publishing}
+ * @see {@link https://docs.base.org/mini-apps/features/manifest}
  */
 export const minikitConfig = {
   accountAssociation: {
@@ -14,7 +17,10 @@ export const minikitConfig = {
     signature:
       "MHhkZTA0ODk4YmE1MGMwMWM3ZWRlY2ViZWJkY2E0ZjA0ZTVlN2NkMTFiNWQxM2UxMjg4OWJiNzgwYTcyNWRhMGFlNTgyNGNlYmFiM2RjODdhNmIwYjNlNjExNTM1MjE1ODQ0MGI1NzU1ZTFhNGE3NzY5NDQwZWMyN2Y2NjhiYjY4NzFj",
   },
-  frame: {
+  baseBuilder: {
+    ownerAddress: "",
+  },
+  miniapp: {
     version: "1",
     name: "minikit-example",
     subtitle: "",
@@ -26,7 +32,7 @@ export const minikitConfig = {
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "utility",
-    tags: [],
+    tags: ["example"],
     heroImageUrl: `${ROOT_URL}/hero.png`,
     tagline: "",
     ogTitle: "",

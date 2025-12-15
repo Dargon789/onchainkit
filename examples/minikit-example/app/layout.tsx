@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Source_Code_Pro } from "next/font/google";
+import { SafeArea } from "@coinbase/onchainkit/minikit";
 import { minikitConfig } from "@/minikit.config";
 import { RootProvider } from "./rootProvider";
 import {
@@ -13,17 +14,17 @@ import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: minikitConfig.frame.name,
-    description: minikitConfig.frame.description,
+    title: minikitConfig.miniapp.name,
+    description: minikitConfig.miniapp.description,
     other: {
-      "fc:frame": JSON.stringify({
+      "fc:miniapp": JSON.stringify({
         version: "next",
-        imageUrl: minikitConfig.frame.heroImageUrl,
+        imageUrl: minikitConfig.miniapp.heroImageUrl,
         button: {
-          title: `Launch ${minikitConfig.frame.name}`,
+          title: `Launch ${minikitConfig.miniapp.name}`,
           action: {
-            name: `Launch ${minikitConfig.frame.name}`,
-            type: "launch_frame",
+            name: `Launch ${minikitConfig.miniapp.name}`,
+            type: "launch_miniapp",
           },
         },
       }),
@@ -47,15 +48,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
-      <head>
-        <ColorSchemeScript />
-      </head>
-      <body className={`${inter.variable} ${sourceCodePro.variable}`}>
-        <MantineProvider defaultColorScheme="auto">
-          <RootProvider>{children}</RootProvider>
-        </MantineProvider>
-      </body>
-    </html>
+    <RootProvider>
+      <html lang="en" {...mantineHtmlProps}>
+        <head>
+          <ColorSchemeScript />
+        </head>
+        <body className={`${inter.variable} ${sourceCodePro.variable}`}>
+          <MantineProvider defaultColorScheme="auto">
+            <SafeArea>{children}</SafeArea>
+          </MantineProvider>
+        </body>
+      </html>
+    </RootProvider>
   );
 }

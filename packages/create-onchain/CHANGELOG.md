@@ -1,5 +1,33 @@
 # create-onchain
 
+## 1.1.2
+
+## 1.1.1
+
+## 1.1.0
+
+## 1.0.3
+
+### Patch Changes
+
+- fix: Add allowedAddresses to MiniKit template - Thanks [@dgca](https://github.com/dgca)! [#2504](https://github.com/coinbase/onchainkit/pull/2504)
+
+## 1.0.2
+
+### Patch Changes
+
+- **chore:** Package version bump
+
+## 1.0.1
+
+- Skipped version to sync versions with create-onchain
+
+## 1.0.0
+
+### Major Changes
+
+- Release create-onchain v1 - Thanks [@dgca](https://github.com/dgca)! [#2497](https://github.com/coinbase/onchainkit/pull/2497)
+
 ## 0.0.22
 
 ### Patch Changes

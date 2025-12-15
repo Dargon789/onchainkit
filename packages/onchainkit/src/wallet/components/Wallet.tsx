@@ -14,7 +14,6 @@ export type WalletProps = {
   /** Whether to sponsor transactions for Send feature of advanced wallet implementation */
   isSponsored?: boolean;
   className?: string;
-  unmountedContent?: React.ReactNode;
 } & (
   | { draggable?: true; draggableStartingPosition?: { x: number; y: number } }
   | { draggable?: false; draggableStartingPosition?: never }
@@ -69,13 +68,12 @@ export function Wallet({
   draggable,
   draggableStartingPosition,
   isSponsored,
-  unmountedContent,
 }: WalletProps) {
   const isMounted = useIsMounted();
 
   // prevents SSR hydration issue
   if (!isMounted) {
-    return unmountedContent ?? <Button disabled>Connect Wallet</Button>;
+    return <Button disabled>Connect Wallet</Button>;
   }
 
   return (

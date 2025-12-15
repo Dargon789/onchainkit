@@ -27,22 +27,39 @@ import { Anchor, Flex, Stack, Text, Title } from "@mantine/core";
 import { Context } from "./components/Context";
 
 export default function App() {
-  const { setFrameReady, isFrameReady } = useMiniKit();
+  const { setMiniAppReady, isMiniAppReady } = useMiniKit();
   const openUrl = useOpenUrl();
 
-  useEffect(() => {
-    if (!isFrameReady) {
-      setFrameReady();
+  const safeAreaInsets = (() => {
+    if (typeof window === "undefined") {
+      return { top: "", right: "", bottom: "", left: "" };
     }
-  }, [setFrameReady, isFrameReady]);
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      top: styles.getPropertyValue("--ock-minikit-safe-area-inset-top").trim(),
+      right: styles
+        .getPropertyValue("--ock-minikit-safe-area-inset-right")
+        .trim(),
+      bottom: styles
+        .getPropertyValue("--ock-minikit-safe-area-inset-bottom")
+        .trim(),
+      left: styles
+        .getPropertyValue("--ock-minikit-safe-area-inset-left")
+        .trim(),
+    };
+  })();
+
+  useEffect(() => {
+    if (!isMiniAppReady) {
+      setMiniAppReady();
+    }
+  }, [setMiniAppReady, isMiniAppReady]);
 
   return (
     <Stack p="md">
       <Flex component="header" align="end" justify="end" mb="xl">
         <Wallet>
-          <ConnectWallet>
-            <Name />
-          </ConnectWallet>
+          <ConnectWallet />
           <WalletDropdown>
             <Identity hasCopyAddressOnClick>
               <Avatar />
@@ -74,6 +91,23 @@ export default function App() {
           <CloseFrame />
           <BatchedTransaction />
           <Context />
+          <Stack>
+            <Title order={3}>Safe Area Insets (:root)</Title>
+            <Text>
+              --ock-minikit-safe-area-inset-top: {safeAreaInsets.top || "N/A"}
+            </Text>
+            <Text>
+              --ock-minikit-safe-area-inset-right:{" "}
+              {safeAreaInsets.right || "N/A"}
+            </Text>
+            <Text>
+              --ock-minikit-safe-area-inset-bottom:{" "}
+              {safeAreaInsets.bottom || "N/A"}
+            </Text>
+            <Text>
+              --ock-minikit-safe-area-inset-left: {safeAreaInsets.left || "N/A"}
+            </Text>
+          </Stack>
         </Stack>
       </Stack>
 

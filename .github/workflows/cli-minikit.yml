@@ -1,9 +1,14 @@
+<<<<<<<< HEAD:.github/workflows/cli-minikit.yml
 name: "cli: build & install minikit"
+========
+name: "cli: build & install onchainkit"
+>>>>>>>> upstream/main:.github/workflows/cli-verify-onchainkit-template.yml
 
 on:
   pull_request:
     branches:
       - main
+      - alpha
     paths:
       - 'packages/create-onchain/**'
   push:
@@ -49,10 +54,14 @@ jobs:
         run: |
           mkdir test-project
           cd test-project
+<<<<<<<< HEAD:.github/workflows/cli-minikit.yml
           (sleep 1; echo ""; sleep 1; echo ""; sleep 1; echo -e "\033[D\n"; sleep 1; echo -e "\033[D\n") | ../packages/create-onchain/dist/esm/cli.js --mini
+========
+          (sleep 1; echo ""; sleep 1; echo ""; sleep 1; echo ""; sleep 1; echo -e "\033[D\n") | ../packages/create-onchain/dist/esm/cli.js
+>>>>>>>> upstream/main:.github/workflows/cli-verify-onchainkit-template.yml
 
       - name: Install & Build test project
-        working-directory: ./test-project/my-minikit-app
+        working-directory: ./test-project/my-onchainkit-app
         run: |
           npm install
           npm run build
