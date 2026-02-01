@@ -9,14 +9,13 @@ import {
 } from 'react';
 import { useAnalytics } from '../../core/analytics/hooks/useAnalytics';
 import { FundEvent } from '../../core/analytics/types';
-import { useValue } from '../../internal/hooks/useValue';
 import { useEmitLifecycleStatus } from '../hooks/useEmitLifecycleStatus';
 import { useOnrampExchangeRate } from '../hooks/useOnrampExchangeRate';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type {
   AmountInputType,
-  FundButtonStateReact,
-  FundCardProviderReact,
+  FundButtonState,
+  FundCardProviderProps,
   LifecycleStatus,
   OnrampError,
   PaymentMethod,
@@ -26,6 +25,7 @@ import type {
 type FundCardContextType = {
   asset: string;
   currency: string;
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   selectedPaymentMethod?: PaymentMethod;
   setSelectedPaymentMethod: (paymentMethod: PaymentMethod) => void;
   selectedInputType: AmountInputType;
@@ -38,8 +38,8 @@ type FundCardContextType = {
   setExchangeRate: (exchangeRate: number) => void;
   exchangeRateLoading: boolean;
   setExchangeRateLoading: (loading: boolean) => void;
-  submitButtonState: FundButtonStateReact;
-  setSubmitButtonState: (state: FundButtonStateReact) => void;
+  submitButtonState: FundButtonState;
+  setSubmitButtonState: (state: FundButtonState) => void;
   paymentMethods: PaymentMethod[];
   setPaymentMethods: (paymentMethods: PaymentMethod[]) => void;
   isPaymentMethodsLoading: boolean;
@@ -73,7 +73,8 @@ export function FundCardProvider({
   onStatus,
   onSuccess,
   presetAmountInputs,
-}: FundCardProviderReact) {
+  sessionToken,
+}: FundCardProviderProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     PaymentMethod | undefined
   >();
@@ -86,7 +87,7 @@ export function FundCardProvider({
   const [exchangeRateLoading, setExchangeRateLoading] = useState<boolean>(true);
 
   const [submitButtonState, setSubmitButtonState] =
-    useState<FundButtonStateReact>('default');
+    useState<FundButtonState>('default');
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isPaymentMethodsLoading, setIsPaymentMethodsLoading] =
@@ -169,37 +170,43 @@ export function FundCardProvider({
     onError,
   });
 
-  const value = useValue<FundCardContextType>({
-    asset,
-    currency,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod: handleSetSelectedPaymentMethod,
-    fundAmountFiat,
-    setFundAmountFiat: handleSetFundAmountFiat,
-    fundAmountCrypto,
-    setFundAmountCrypto,
-    selectedInputType,
-    setSelectedInputType,
-    exchangeRate,
-    setExchangeRate,
-    exchangeRateLoading,
-    setExchangeRateLoading,
-    submitButtonState,
-    setSubmitButtonState,
-    paymentMethods,
-    setPaymentMethods,
-    isPaymentMethodsLoading,
-    setIsPaymentMethodsLoading,
-    headerText,
-    buttonText,
-    country,
-    subdivision,
-    lifecycleStatus,
-    updateLifecycleStatus,
-    presetAmountInputs,
-    onError,
-  });
-  return <FundContext.Provider value={value}>{children}</FundContext.Provider>;
+  return (
+    <FundContext.Provider
+      value={{
+        asset,
+        currency,
+        selectedPaymentMethod,
+        setSelectedPaymentMethod: handleSetSelectedPaymentMethod,
+        fundAmountFiat,
+        setFundAmountFiat: handleSetFundAmountFiat,
+        fundAmountCrypto,
+        setFundAmountCrypto,
+        selectedInputType,
+        setSelectedInputType,
+        exchangeRate,
+        setExchangeRate,
+        exchangeRateLoading,
+        setExchangeRateLoading,
+        submitButtonState,
+        setSubmitButtonState,
+        paymentMethods,
+        setPaymentMethods,
+        isPaymentMethodsLoading,
+        setIsPaymentMethodsLoading,
+        headerText,
+        buttonText,
+        country,
+        subdivision,
+        lifecycleStatus,
+        updateLifecycleStatus,
+        presetAmountInputs,
+        sessionToken,
+        onError,
+      }}
+    >
+      {children}
+    </FundContext.Provider>
+  );
 }
 
 export function useFundContext() {

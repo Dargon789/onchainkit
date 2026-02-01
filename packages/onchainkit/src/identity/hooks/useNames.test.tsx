@@ -1,4 +1,3 @@
-import { publicClient } from '@/core/network/client';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { Address } from 'viem';
 import { base, mainnet, optimism } from 'viem/chains';
@@ -6,12 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getNames } from '../utils/getNames';
 import { getNewReactQueryTestProvider } from './getNewReactQueryTestProvider';
 import { useNames } from './useNames';
-
-vi.mock('@/core/network/client');
-vi.mock('@/core/network/getChainPublicClient', () => ({
-  ...vi.importActual('@/core/network/getChainPublicClient'),
-  getChainPublicClient: vi.fn(() => publicClient),
-}));
 
 vi.mock('../utils/getNames');
 
@@ -159,12 +152,12 @@ describe('useNames', () => {
 
   it('merges custom queryOptions with default options', async () => {
     const testEnsNames = ['user1.eth', 'user2.eth', 'user3.eth'];
-    const customCacheTime = 120000;
+    const gcTime = 120000;
 
     vi.mocked(getNames).mockResolvedValue(testEnsNames);
 
     const { result } = renderHook(
-      () => useNames({ addresses: testAddresses }, { gcTime: customCacheTime }),
+      () => useNames({ addresses: testAddresses }, { gcTime }),
       {
         wrapper: getNewReactQueryTestProvider(),
       },
@@ -259,48 +252,5 @@ describe('useNames', () => {
     });
 
     expect(getNames).toHaveBeenCalled();
-  });
-
-  it('correctly maps cacheTime to gcTime for backwards compatibility', async () => {
-    const mockCacheTime = 60000;
-    const testEnsNames = ['user1.eth', 'user2.eth', 'user3.eth'];
-
-    vi.mocked(getNames).mockResolvedValue(testEnsNames);
-
-    renderHook(
-      () =>
-        useNames({ addresses: testAddresses }, { cacheTime: mockCacheTime }),
-      {
-        wrapper: getNewReactQueryTestProvider(),
-      },
-    );
-
-    expect(mockUseQuery).toHaveBeenCalled();
-    const optionsWithCacheTime = mockUseQuery.mock.calls[0][0];
-    expect(optionsWithCacheTime).toHaveProperty('gcTime', mockCacheTime);
-
-    const mockGcTime = 120000;
-
-    mockUseQuery.mockClear();
-
-    renderHook(
-      () =>
-        useNames(
-          {
-            addresses: testAddresses,
-          },
-          {
-            cacheTime: mockCacheTime,
-            gcTime: mockGcTime,
-          },
-        ),
-      {
-        wrapper: getNewReactQueryTestProvider(),
-      },
-    );
-
-    expect(mockUseQuery).toHaveBeenCalled();
-    const optionsWithBoth = mockUseQuery.mock.calls[0][0];
-    expect(optionsWithBoth).toHaveProperty('gcTime', mockGcTime);
   });
 });

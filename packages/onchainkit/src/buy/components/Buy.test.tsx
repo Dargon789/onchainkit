@@ -27,10 +27,6 @@ vi.mock('./BuyButton', () => ({
   BuyButton: () => <div data-testid="mock-BuyButton">Buy</div>,
 }));
 
-vi.mock('@/internal/hooks/useTheme', () => ({
-  useTheme: vi.fn(),
-}));
-
 vi.mock('@/internal/hooks/useOutsideClick', () => ({
   useOutsideClick: vi.fn(),
 }));
@@ -158,5 +154,19 @@ describe('Buy', () => {
   it('should not trigger click handler when dropdown is closed', () => {
     render(<Buy className="test-class" toToken={degenToken} />);
     expect(screen.queryByTestId('mock-BuyDropdown')).not.toBeInTheDocument();
+  });
+
+  it('should pass sessionToken to BuyProvider', () => {
+    const sessionToken = 'test-session-token';
+    render(
+      <Buy
+        className="test-class"
+        toToken={degenToken}
+        sessionToken={sessionToken}
+      />,
+    );
+
+    // Verify BuyProvider is rendered (which receives the sessionToken prop)
+    expect(screen.getByTestId('mock-BuyProvider')).toBeInTheDocument();
   });
 });

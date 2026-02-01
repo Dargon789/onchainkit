@@ -9,7 +9,7 @@ import type {
 import type { Token } from '@/token';
 import type { Address, TransactionReceipt } from 'viem';
 
-export type BuyReact = {
+export type BuyProps = {
   /** Optional className override for top div element. */
   className?: string;
   config?: SwapConfig;
@@ -31,6 +31,8 @@ export type BuyReact = {
   fromToken?: Token;
   /** The token to swap to */
   toToken: Token;
+  /** Onramp session token */
+  sessionToken?: string;
 };
 
 export type BuyContextType = {
@@ -56,9 +58,10 @@ export type BuyContextType = {
   isDropdownOpen: boolean;
   setIsDropdownOpen: (open: boolean) => void;
   startPopupMonitor: (popupWindow: Window) => void;
+  sessionToken?: string;
 };
 
-export type BuyProviderReact = {
+export type BuyProviderProps = {
   children: React.ReactNode;
   config?: {
     /** Maximum acceptable slippage for a swap. (default: 10) This is as a percent, not basis points */
@@ -79,6 +82,7 @@ export type BuyProviderReact = {
   onSuccess?: (transactionReceipt?: TransactionReceipt) => void;
   fromToken?: Token;
   toToken: Token;
+  sessionToken?: string;
 };
 
 export type BuyTokens = {
@@ -88,7 +92,7 @@ export type BuyTokens = {
   from?: SwapUnit;
 };
 
-export type GetBuyQuoteResponse = {
+export type GetBuyQuoteResponseType = {
   response?: GetSwapQuoteResponse;
   error?: APIError;
   formattedFromAmount?: string;

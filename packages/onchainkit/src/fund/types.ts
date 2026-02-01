@@ -1,47 +1,5 @@
 import type { ReactNode } from 'react';
-
-/**
- * Props used to get an Onramp buy URL by directly providing a CDP project ID.
- * See https://docs.cdp.coinbase.com/onramp/docs/api-initializing#generating-the-coinbase-onramp-buysell-url
- *
- * Note: exported as public Type
- */
-export type GetOnrampUrlWithProjectIdParams = {
-  /**
-   * The Project ID of your CDP project created at https://portal.cdp.coinbase.com/
-   * This must be provided if you don't provide a sessionToken.
-   */
-  projectId: string;
-  sessionToken?: never;
-  /**
-   * The addresses that the customer's funds should be delivered to.
-   *
-   * Each entry in the record represents a wallet address and the networks it is valid for. There should only be a
-   * single address for each network your app supports. Users will be able to buy/send any asset supported by any of
-   * the networks you specify. See the assets param if you want to restrict the available assets.
-   *
-   * Some common examples:
-   *
-   * Support all assets that are available for sending on the base network, only on the base network:
-   *
-   * `{ "0x1": ["base"] }`
-   */
-  addresses: Record<string, string[]>;
-  /**
-   * This optional parameter will restrict the assets available for the user to buy/send. It acts as a filter on the
-   * networks specified in the {addresses} param.
-   *
-   * Some common examples:
-   *
-   * Support only USDC on either the base network or the ethereum network:
-   *
-   * `addresses: { "0x1": ["base", "ethereum"] }, assets: ["USDC"]`
-   *
-   * The values in this list can either be asset symbols like BTC, ETH, or asset UUIDs that you can get from the Buy
-   * Options API {@link https://docs.cdp.coinbase.com/onramp/docs/api-configurations/#buy-options}.
-   */
-  assets?: string[];
-} & GetOnrampBuyUrlOptionalProps;
+import React from 'react';
 
 /**
  * Props used to get an Onramp buy URL using a session token created using the Onramp session token API.
@@ -49,15 +7,12 @@ export type GetOnrampUrlWithProjectIdParams = {
  *
  * Note: exported as public Type
  */
-export type GetOnrampUrlWithSessionTokenParams = {
+export type GetOnrampUrlParams = {
   /**
    * A session token create using the Onramp session token API. The token will be linked to the project ID, addresses,
    * and assets params provided in the create session token API request.
    */
   sessionToken: string;
-  projectId?: never;
-  addresses?: never;
-  assets?: never;
 } & GetOnrampBuyUrlOptionalProps;
 
 /**
@@ -111,33 +66,80 @@ type GetOnrampBuyUrlOptionalProps = {
   originComponentName?: string;
 };
 
-/**
- * Note: exported as public Type
- */
-export type FundButtonReact = {
-  className?: string; // An optional CSS class name for styling the button component
-  disabled?: boolean; // A optional prop to disable the fund button
-  text?: string; // An optional text to be displayed in the button component
-  successText?: string; // An optional text to be displayed in the button component when the transaction is successful
-  errorText?: string; // An optional text to be displayed in the button component when the transaction fails
-  state?: FundButtonStateReact; // The state of the button component
-  hideText?: boolean; // An optional prop to hide the text in the button component
-  hideIcon?: boolean; // An optional prop to hide the icon in the button component
-  fundingUrl?: string; // An optional prop to provide a custom funding URL
-  openIn?: 'popup' | 'tab'; // Whether to open the funding flow in a tab or a popup window
+type FundButtonBaseProps = {
+  /* An optional CSS class name for styling the button component */
+  className?: string;
+  /* A optional prop to disable the fund button */
+  disabled?: boolean;
+  /* The state of the button component */
+  state?: FundButtonState;
+  /* Whether to open the funding flow in a tab or a popup window */
+  openIn?: 'popup' | 'tab';
   /**
+   * Size of the popup window if `openIn` is set to `popup`
    * Note: popupSize will be ignored when using a Coinbase Onramp URL (i.e. https://pay.coinbase.com/*) as it requires
    * a fixed popup size.
    */
-  popupSize?: 'sm' | 'md' | 'lg'; // Size of the popup window if `openIn` is set to `popup`
-  rel?: string; // Specifies the relationship between the current document and the linked document
-  target?: string; // Where to open the target if `openIn` is set to tab
-  fiatCurrency?: string; // The currency code of the fiat amount provided in the presetFiatAmount param e.g. USD, CAD, EUR.
-  onPopupClose?: () => void; // A callback function that will be called when the popup window is closed
-  onClick?: () => void; // A callback function that will be called when the button is clicked
+  popupSize?: 'sm' | 'md' | 'lg';
+  /* Where to open the target if `openIn` is set to tab */
+  target?: string;
+  /* The currency code of the fiat amount provided in the presetFiatAmount param e.g. USD, CAD, EUR. */
+  fiatCurrency?: string;
+  /* A callback function that will be called when the popup window is closed */
+  onPopupClose?: () => void;
+  /* A callback function that will be called when the button is clicked */
+  onClick?: () => void;
 };
 
-export type FundButtonStateReact = 'default' | 'success' | 'error' | 'loading';
+// Require exactly one funding source for FundButton (not both)
+type FundButtonSourceProps =
+  | { fundingUrl: string; sessionToken?: string }
+  | { sessionToken: string; fundingUrl?: string };
+
+type FundButtonRenderProps =
+  | {
+      render?: (props: FundButtonRenderParams) => React.ReactNode;
+      /* An optional React node to be displayed in the button component */
+      children?: never;
+    }
+  | {
+      render?: never;
+      /* An optional React node to be displayed in the button component */
+      children?: ReactNode;
+    };
+
+export type FundButtonRenderParams = {
+  /* The state of the button component, only relevant when using FundCardSubmitButton */
+  status: FundButtonState;
+  /* A callback function that will be called when the button is clicked */
+  onClick: (e: React.MouseEvent) => void;
+  /* Whether the button is disabled */
+  isDisabled: boolean;
+};
+
+/**
+ * Note: exported as public Type
+ */
+export type FundButtonProps = FundButtonBaseProps &
+  FundButtonSourceProps &
+  FundButtonRenderProps;
+
+/**
+ * Note: exported as public Type
+ */
+export type FundCardSubmitButtonProps =
+  | {
+      render?: (props: FundButtonRenderParams) => React.ReactNode;
+      /* An optional React node to be displayed in the button component */
+      children?: never;
+    }
+  | {
+      render?: never;
+      /* An optional React node to be displayed in the button component */
+      children?: ReactNode;
+    };
+
+export type FundButtonState = 'default' | 'success' | 'error' | 'loading';
 
 /**
  * Matches a JSON object.
@@ -320,19 +322,19 @@ export type OnrampPaymentCurrency = {
   iconUrl: string;
 };
 
-export type FundCardAmountInputPropsReact = {
+export type FundCardAmountInputProps = {
   className?: string;
 };
 
-export type FundCardAmountInputTypeSwitchPropsReact = {
+export type FundCardAmountInputTypeSwitchProps = {
   className?: string;
 };
 
-export type FundCardHeaderPropsReact = {
+export type FundCardHeaderProps = {
   className?: string;
 };
 
-export type FundCardPaymentMethodImagePropsReact = {
+export type FundCardPaymentMethodImageProps = {
   className?: string;
   size?: number;
   paymentMethod: PaymentMethod;
@@ -347,18 +349,15 @@ export type PaymentMethod = {
   maxAmount?: number;
 };
 
-export type FundCardPaymentMethodDropdownPropsReact = {
+export type FundCardPaymentMethodDropdownProps = {
   className?: string;
-};
-
-export type FundCardCurrencyLabelPropsReact = {
-  label: string;
 };
 
 /**
  * Note: exported as public Type
  */
-export type FundCardPropsReact = {
+export type FundCardProps = {
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   children?: ReactNode;
   assetSymbol: string;
   placeholder?: string | React.ReactNode;
@@ -371,18 +370,18 @@ export type FundCardPropsReact = {
   presetAmountInputs?: PresetAmountInputs;
 } & LifecycleEvents;
 
-export type FundCardContentPropsReact = {
+export type FundCardContentProps = {
   children?: ReactNode;
 };
 
-export type FundCardPaymentMethodSelectorTogglePropsReact = {
+export type FundCardPaymentMethodSelectorToggleProps = {
   className?: string;
   isOpen: boolean; // Determines carot icon direction
   onClick: () => void; // Button on click handler
   paymentMethod: PaymentMethod;
 };
 
-export type FundCardPaymentMethodSelectRowPropsReact = {
+export type FundCardPaymentMethodSelectRowProps = {
   paymentMethod: PaymentMethod;
   onClick?: (paymentMethod: PaymentMethod) => void;
   hideImage?: boolean;
@@ -392,9 +391,10 @@ export type FundCardPaymentMethodSelectRowPropsReact = {
   testId?: string;
 };
 
-export type FundCardProviderReact = {
+export type FundCardProviderProps = {
   children: ReactNode;
   asset: string;
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   /**
    * Three letter currency code. Defaults to USD.
    */
@@ -438,7 +438,7 @@ export type LifecycleStatus =
       statusData: null;
     };
 
-export type PresetAmountInputItemPropsReact = {
+export type PresetAmountInputItemProps = {
   presetAmountInput: string;
   currency: string;
   onClick: (presetAmountInput: string) => void;

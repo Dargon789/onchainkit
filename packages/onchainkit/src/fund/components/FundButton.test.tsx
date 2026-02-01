@@ -16,6 +16,7 @@ import {
 import { useAccount } from 'wagmi';
 import { useGetFundingUrl } from '../hooks/useGetFundingUrl';
 import { quoteResponseDataMock } from '../mocks';
+import { FundButtonRenderParams } from '../types';
 import { getFundingPopupSize } from '../utils/getFundingPopupSize';
 import { FundButton } from './FundButton';
 
@@ -31,8 +32,10 @@ vi.mock('@/internal/utils/openPopup', () => ({
   openPopup: vi.fn(),
 }));
 
-vi.mock('@/internal/hooks/useTheme', () => ({
-  useTheme: vi.fn(),
+vi.mock('../../wallet/components/ConnectWallet', () => ({
+  ConnectWallet: () => (
+    <div data-testid="ockConnectWallet_Container">Connect</div>
+  ),
 }));
 
 vi.mock('wagmi', () => ({
@@ -49,6 +52,16 @@ vi.mock('wagmi', () => ({
 vi.mock('@/core/analytics/hooks/useAnalytics', () => ({
   useAnalytics: vi.fn(),
 }));
+
+const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+function customRender({ onClick, isDisabled }: FundButtonRenderParams) {
+  return (
+    <button onClick={onClick} disabled={isDisabled}>
+      click
+    </button>
+  );
+}
 
 global.fetch = vi.fn(() =>
   Promise.resolve({
@@ -98,7 +111,7 @@ describe('FundButton', () => {
     (useGetFundingUrl as Mock).mockReturnValue(fundingUrl);
     (getFundingPopupSize as Mock).mockReturnValue({ height, width });
 
-    render(<FundButton />);
+    render(<FundButton sessionToken="test-session-token" />);
 
     expect(useGetFundingUrl).toHaveBeenCalled();
     const buttonElement = screen.getByRole('button');
@@ -113,16 +126,20 @@ describe('FundButton', () => {
     });
   });
 
-  it('renders the fund button as a link when the openIn prop is set to tab', () => {
+  it('renders calls window.open when the openIn prop is set to tab', () => {
+    const onClickMock = vi.fn();
     const fundingUrl = 'https://props.funding.url';
     const { height, width } = { height: 200, width: 100 };
     (getFundingPopupSize as Mock).mockReturnValue({ height, width });
 
-    render(<FundButton fundingUrl={fundingUrl} openIn="tab" />);
+    render(
+      <FundButton fundingUrl={fundingUrl} openIn="tab" onClick={onClickMock} />,
+    );
+    const button = screen.getByTestId('ockFundButton');
+    fireEvent.click(button);
 
-    const linkElement = screen.getByRole('link');
-    expect(screen.getByText('Fund')).toBeInTheDocument();
-    expect(linkElement).toHaveAttribute('href', fundingUrl);
+    expect(onClickMock).toHaveBeenCalled();
+    expect(openSpy).toHaveBeenCalledWith(fundingUrl, '_blank');
   });
 
   it('displays a spinner when in loading state', () => {
@@ -131,21 +148,21 @@ describe('FundButton', () => {
   });
 
   it('displays success text when in success state', () => {
-    render(<FundButton state="success" />);
+    render(<FundButton state="success" fundingUrl="https://funding.url" />);
     expect(screen.getByTestId('ockFundButtonTextContent')).toHaveTextContent(
       'Success',
     );
   });
 
   it('displays error text when in error state', () => {
-    render(<FundButton state="error" />);
+    render(<FundButton state="error" fundingUrl="https://funding.url" />);
     expect(screen.getByTestId('ockFundButtonTextContent')).toHaveTextContent(
       'Something went wrong',
     );
   });
 
   it('adds disabled class when the button is disabled', () => {
-    render(<FundButton disabled={true} />);
+    render(<FundButton disabled={true} fundingUrl="https://funding.url" />);
     expect(screen.getByRole('button')).toHaveClass(pressable.disabled);
   });
 
@@ -194,9 +211,34 @@ describe('FundButton', () => {
     });
   });
 
-  it('icon is not shown when hideIcon is passed', () => {
-    render(<FundButton hideIcon={true} />);
-    expect(screen.queryByTestId('ockFundButtonIcon')).not.toBeInTheDocument();
+  it('renders custom implementation when render prop is passed', () => {
+    render(
+      <FundButton render={customRender} fundingUrl="https://funding.url" />,
+    );
+    expect(screen.getByText('click')).toBeInTheDocument();
+  });
+
+  it('throws when neither sessionToken nor fundingUrl is provided', () => {
+    expect(() =>
+      render(
+        <FundButton
+          fundingUrl={undefined as unknown as string}
+          sessionToken={undefined as unknown as string}
+        />,
+      ),
+    ).toThrow('FundButton requires either sessionToken or fundingUrl');
+  });
+
+  it('renders custom children instead of default content', () => {
+    render(
+      <FundButton fundingUrl="https://funding.url">
+        <span data-testid="customChild">Top Up</span>
+      </FundButton>,
+    );
+    expect(screen.getByTestId('customChild')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('ockFundButtonTextContent'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows ConnectWallet when no wallet is connected', () => {
@@ -204,24 +246,39 @@ describe('FundButton', () => {
       address: undefined,
     });
 
-    render(<FundButton className="custom-class" />);
+    render(
+      <FundButton className="custom-class" fundingUrl="https://funding.url" />,
+    );
 
     expect(
       screen.queryByTestId('ockConnectWallet_Container'),
     ).toBeInTheDocument();
     expect(screen.queryByTestId('ockFundButton')).not.toBeInTheDocument();
-    expect(screen.getByTestId('ockConnectWallet_Container')).toHaveClass(
-      'flex gap-4',
-    );
   });
 
   it('shows Fund button when wallet is connected', () => {
-    render(<FundButton />);
+    render(<FundButton fundingUrl="https://funding.url" />);
 
     expect(screen.queryByTestId('ockFundButton')).toBeInTheDocument();
     expect(
       screen.queryByTestId('ockConnectWallet_Container'),
     ).not.toBeInTheDocument();
+  });
+
+  it('passes sessionToken to useGetFundingUrl hook', () => {
+    const sessionToken = 'test-session-token';
+    const fundingUrl = 'https://default.funding.url';
+    const { height, width } = { height: 200, width: 100 };
+    (useGetFundingUrl as Mock).mockReturnValue(fundingUrl);
+    (getFundingPopupSize as Mock).mockReturnValue({ height, width });
+
+    render(<FundButton sessionToken={sessionToken} />);
+
+    expect(useGetFundingUrl).toHaveBeenCalledWith({
+      fiatCurrency: 'USD',
+      originComponentName: 'FundButton',
+      sessionToken: sessionToken,
+    });
   });
 
   describe('analytics', () => {
@@ -275,7 +332,7 @@ describe('FundButton', () => {
     });
 
     it('does not send analytics when button is disabled', () => {
-      render(<FundButton disabled={true} />);
+      render(<FundButton disabled={true} fundingUrl="https://funding.url" />);
 
       const buttonElement = screen.getByRole('button');
       fireEvent.click(buttonElement);
@@ -286,7 +343,7 @@ describe('FundButton', () => {
     it('does not send analytics when no funding URL is available', () => {
       (useGetFundingUrl as Mock).mockReturnValue(undefined);
 
-      render(<FundButton />);
+      render(<FundButton sessionToken="test-session-token" />);
 
       const buttonElement = screen.getByRole('button');
       fireEvent.click(buttonElement);

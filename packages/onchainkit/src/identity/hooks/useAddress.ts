@@ -1,6 +1,6 @@
 import type {
   GetAddressReturnType,
-  UseAddressOptions,
+  UseAddressParams,
   UseQueryOptions,
 } from '@/identity/types';
 import { getAddress } from '@/identity/utils/getAddress';
@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { mainnet } from 'viem/chains';
 
 export const useAddress = (
-  { name, chain = mainnet }: UseAddressOptions,
+  { name, chain = mainnet }: UseAddressParams,
   queryOptions?: UseQueryOptions<GetAddressReturnType>,
 ) => {
   const queryKey = ['useAddress', name, chain.id];
@@ -19,8 +19,6 @@ export const useAddress = (
     queryFn: () => getAddress({ name, chain }),
     enabled: !!name,
     ...DEFAULT_QUERY_OPTIONS,
-    // Use cacheTime as gcTime for backward compatibility
-    gcTime: queryOptions?.cacheTime,
     ...queryOptions,
   });
 };

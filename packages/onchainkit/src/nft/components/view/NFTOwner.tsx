@@ -1,17 +1,22 @@
 import { useNFTContext } from '@/nft/components/NFTProvider';
-import { useOnchainKit } from '@/useOnchainKit';
+import { COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID } from '@/identity/constants';
 import type { ReactNode } from 'react';
+import type { EASSchemaUid } from '@/identity/types';
 
 import { Avatar, Badge, Identity, Name } from '@/identity';
-import { cn, color, text } from '../../../styles/theme';
+import { cn, text } from '../../../styles/theme';
 
-type NFTOwnerReact = {
+type NFTOwnerProps = {
   className?: string;
   label?: ReactNode;
+  schemaId?: EASSchemaUid | null;
 };
 
-export function NFTOwner({ className, label = 'Owned by' }: NFTOwnerReact) {
-  const { schemaId } = useOnchainKit();
+export function NFTOwner({
+  className,
+  label = 'Owned by',
+  schemaId,
+}: NFTOwnerProps) {
   const { ownerAddress } = useNFTContext();
 
   if (!ownerAddress) {
@@ -26,11 +31,11 @@ export function NFTOwner({ className, label = 'Owned by' }: NFTOwnerReact) {
         className,
       )}
     >
-      <div className={cn(color.foregroundMuted)}>{label}</div>
+      <div className={cn('text-ock-foreground-muted')}>{label}</div>
       <Identity
         className={cn('!bg-inherit space-x-1 px-0 [&>div]:space-x-2')}
         address={ownerAddress}
-        schemaId={schemaId}
+        schemaId={schemaId ?? COINBASE_VERIFIED_ACCOUNT_SCHEMA_ID}
       >
         <Avatar className="h-4 w-4" />
         <Name>
