@@ -11,6 +11,9 @@ on:
     branches:
       - changeset-release/main
 
+permissions:
+  contents: read
+
 jobs:
   test:
     if: github.head_ref != 'alpha'
