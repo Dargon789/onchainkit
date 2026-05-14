@@ -81,6 +81,38 @@ describe('dualCSSPlugin', () => {
     expect(plugin.name).toBe('dual-css');
   });
 
+  it('should process CSS when asset source is a Uint8Array', async () => {
+    const plugin = dualCSSPlugin({ scopedFileName: 'onchainkit.css' });
+
+    const cssSource = '.test { color: blue; }';
+    const cssBytes = new TextEncoder().encode(cssSource);
+
+    const cssAsset: OutputAsset = {
+      type: 'asset',
+      fileName: 'assets/style.css',
+      source: cssBytes,
+      name: 'style.css',
+    };
+
+    const bundle: OutputBundle = {
+      'assets/style.css': cssAsset,
+    };
+
+    const outputOptions: NormalizedOutputOptions = {
+      dir: '/output',
+    } as NormalizedOutputOptions;
+
+    mockFs.existsSync.mockReturnValue(true);
+
+    await callWriteBundle(plugin, outputOptions, bundle);
+
+    expect(console.log).toHaveBeenCalledWith('📦 Generating scoped styles...');
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      path.join('/output', 'assets', 'onchainkit.css'),
+      expect.any(String),
+    );
+  });
+
   it('should process CSS and write scoped file when style.css is found', async () => {
     const plugin = dualCSSPlugin({ scopedFileName: 'onchainkit.css' });
 
