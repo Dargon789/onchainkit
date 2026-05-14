@@ -1,13 +1,10 @@
 ---
-name: General Issue
-about: For issues that don't fit other categories
+name: Custom issue template
+about: Describe this issue template's purpose here.
 title: ''
-labels: 'discussion'
+labels: ''
 assignees: ''
 
 ---
 
-### Description
-
-*Provide a clear and concise description of your issue or suggestion.*
 
