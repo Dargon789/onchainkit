@@ -69,14 +69,10 @@ type GetOnrampBuyUrlOptionalProps = {
 type FundButtonBaseProps = {
   /* An optional CSS class name for styling the button component */
   className?: string;
-  /* An optional React node to be displayed in the button component */
-  children?: ReactNode;
   /* A optional prop to disable the fund button */
   disabled?: boolean;
   /* The state of the button component */
   state?: FundButtonState;
-  /* An optional prop to provide a custom funding URL */
-  fundingUrl?: string;
   /* Whether to open the funding flow in a tab or a popup window */
   openIn?: 'popup' | 'tab';
   /**
@@ -93,9 +89,24 @@ type FundButtonBaseProps = {
   onPopupClose?: () => void;
   /* A callback function that will be called when the button is clicked */
   onClick?: () => void;
-  /* An optional prop to provide a session token */
-  sessionToken?: string;
 };
+
+// Require exactly one funding source for FundButton (not both)
+type FundButtonSourceProps =
+  | { fundingUrl: string; sessionToken?: string }
+  | { sessionToken: string; fundingUrl?: string };
+
+type FundButtonRenderProps =
+  | {
+      render?: (props: FundButtonRenderParams) => React.ReactNode;
+      /* An optional React node to be displayed in the button component */
+      children?: never;
+    }
+  | {
+      render?: never;
+      /* An optional React node to be displayed in the button component */
+      children?: ReactNode;
+    };
 
 export type FundButtonRenderParams = {
   /* The state of the button component, only relevant when using FundCardSubmitButton */
@@ -109,17 +120,9 @@ export type FundButtonRenderParams = {
 /**
  * Note: exported as public Type
  */
-export type FundButtonProps =
-  | (FundButtonBaseProps & {
-      render?: (props: FundButtonRenderParams) => React.ReactNode;
-      /* An optional React node to be displayed in the button component */
-      children?: never;
-    })
-  | (FundButtonBaseProps & {
-      render?: never;
-      /* An optional React node to be displayed in the button component */
-      children?: ReactNode;
-    });
+export type FundButtonProps = FundButtonBaseProps &
+  FundButtonSourceProps &
+  FundButtonRenderProps;
 
 /**
  * Note: exported as public Type
@@ -354,6 +357,7 @@ export type FundCardPaymentMethodDropdownProps = {
  * Note: exported as public Type
  */
 export type FundCardProps = {
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   children?: ReactNode;
   assetSymbol: string;
   placeholder?: string | React.ReactNode;
@@ -364,7 +368,6 @@ export type FundCardProps = {
   currency?: string;
   className?: string;
   presetAmountInputs?: PresetAmountInputs;
-  sessionToken?: string;
 } & LifecycleEvents;
 
 export type FundCardContentProps = {
@@ -391,6 +394,7 @@ export type FundCardPaymentMethodSelectRowProps = {
 export type FundCardProviderProps = {
   children: ReactNode;
   asset: string;
+  sessionToken: string; // REQUIRED session token used to create funding url upon submit button click
   /**
    * Three letter currency code. Defaults to USD.
    */
@@ -402,7 +406,6 @@ export type FundCardProviderProps = {
   subdivision?: string;
   inputType?: AmountInputType;
   presetAmountInputs?: PresetAmountInputs;
-  sessionToken?: string;
 } & LifecycleEvents;
 
 export type LifecycleEvents = {
