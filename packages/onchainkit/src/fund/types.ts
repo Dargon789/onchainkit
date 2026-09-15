@@ -93,8 +93,8 @@ type FundButtonBaseProps = {
 
 // Require exactly one funding source for FundButton (not both)
 type FundButtonSourceProps =
-  | { fundingUrl: string; sessionToken?: string }
-  | { sessionToken: string; fundingUrl?: string };
+  | { fundingUrl: string; sessionToken?: never }
+  | { sessionToken: string; fundingUrl?: never };
 
 type FundButtonRenderProps =
   | {
